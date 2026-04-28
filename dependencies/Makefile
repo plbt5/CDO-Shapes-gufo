@@ -22,6 +22,14 @@ uco_srcdir := $(top_srcdir)/dependencies/UCO
 
 RDF_TOOLKIT_JAR := $(uco_srcdir)/lib/rdf-toolkit.jar
 
+# TODO: This variable lists files for Make to generate and delete on
+# 'make clean' calls.  This variable should be adapted to list each file
+# to normalize.
+# Note that to support the catalog-v001.xml preconditions, this list
+# must only be files in this directory.
+normalized_ttls := \
+  formatted-gufo.ttl
+
 all: \
   catalog-v001.xml
 
@@ -31,11 +39,11 @@ $(RDF_TOOLKIT_JAR):
 	@test -r $@
 
 catalog-v001.xml: \
+  $(normalized_ttls) \
   $(top_srcdir)/.venv.done.log \
   $(top_srcdir)/etc/domain_directories.tsv \
   $(top_srcdir)/etc/dependency_files.tsv \
-  $(top_srcdir)/src/create-catalog-v001.xml.py \
-  imports-transitive.ttl
+  $(top_srcdir)/src/create-catalog-v001.xml.py
 	rm -f _$@
 	source $(top_srcdir)/venv/bin/activate \
 	  && python3 $(top_srcdir)/src/create-catalog-v001.xml.py \
@@ -43,19 +51,18 @@ catalog-v001.xml: \
 	    $(top_srcdir)/etc/domain_directories.tsv \
 	    $(top_srcdir)/etc/dependency_files.tsv \
 	    "$(top_srcdir)" \
-	    imports-transitive.ttl
+	    $(normalized_ttls)
 	mv _$@ $@
 
 check: \
-  catalog-v001.xml
+  all
 
 clean:
 	@rm -f \
-	  catalog-v001.xml \
-	  gufo.ttl \
-	  imports-transitive.ttl
+	  $(normalized_ttls) \
+	  catalog-v001.xml
 
-gufo.ttl: \
+formatted-gufo.ttl: \
   gufo/gufo.ttl \
   $(RDF_TOOLKIT_JAR) \
   $(top_srcdir)/.venv.done.log
@@ -70,9 +77,3 @@ gufo.ttl: \
 	  --target _$@ \
 	  --target-format turtle
 	mv _$@ $@
-
-# This recipe intentionally does not incorporate CDO ontologies (UCO,
-# CASE, etc.), to avoid redundant imports between multiple profiles.
-imports-transitive.ttl: \
-  gufo.ttl
-	cp $< $@
