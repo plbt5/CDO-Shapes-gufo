@@ -26,6 +26,7 @@ all: \
   generated-exemplars-expanded.ttl
 
 .pyshacl.done.log: \
+  $(top_srcdir)/ontology/generated-ontology.ttl \
   $(top_srcdir)/shapes/generated-shapes.ttl \
   generated-exemplars-expanded.ttl
 	source $(top_srcdir)/venv/bin/activate \
@@ -60,13 +61,13 @@ all: \
 	touch $@
 
 .qc.ttl: \
-  $(top_srcdir)/shapes/generated-local.ttl \
+  $(top_srcdir)/shapes/generated-shapes.ttl \
   exemplars.ttl \
   exemplars_XFAIL.ttl
 	source $(top_srcdir)/venv/bin/activate \
 	  && rdfpipe \
 	    --output-format turtle \
-	    $(top_srcdir)/shapes/generated-local.ttl \
+	    $(top_srcdir)/shapes/generated-shapes.ttl \
 	    exemplars.ttl \
 	    exemplars_XFAIL.ttl \
 	    > _$@
@@ -86,8 +87,8 @@ clean:
 
 exemplars_XFAIL_validation.ttl: \
   $(RDF_TOOLKIT_JAR) \
+  $(top_srcdir)/ontology/generated-ontology.ttl \
   $(top_srcdir)/shapes/generated-shapes.ttl \
-  generated-exemplars-expanded.ttl \
   exemplars_XFAIL.ttl
 	source $(top_srcdir)/venv/bin/activate \
 	  && pyshacl \
